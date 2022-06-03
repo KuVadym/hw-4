@@ -1,8 +1,6 @@
-from ntpath import join
 import os
 import re
 import shutil
-import sys
 import concurrent.futures
 
 
@@ -13,10 +11,11 @@ files = {"audio": ["mp3", "ogg", "wav", "amr"],
          "video": ["mp4", "avi", "mov", "mkv", "MOV"],
          "documents": ["doc", "docx", "txt", "pdf", "xlsx", "pptx", "rtf", "PDF", "xls"],
          "images": ["jpeg", "png", "jpg", "svg", "bmp", "BMP"],
-         "archives": ["zip", "gz", "tar", "tgz", "rar"]}
+         "archives": ["zip", "gz", "tar", "tgz", "rar"],
+         "other": []}
 
 
-def normalize(name):   # Транслитерация c rbhbkbws
+def normalize(name):   # transliteration
     dictionary = {ord("А"): "A", ord("Б"): "B", ord("В"): "V", ord("Г"): "G", ord("Д"): "D", ord("Е"): "E", ord("Ж"): "ZH", ord("З"): "Z",
                   ord("И"): "I", ord("Й"): "J", ord("К"): "K", ord("Л"): "L", ord("М"): "M", ord("Н"): "N", ord("О"): "O", ord("П"): "P",
                   ord("Р"): "R", ord("С"): "S", ord("Т"): "T", ord("У"): "U", ord("Ф"): "F", ord("Х"): "H", ord("Ц"): "TS", ord("Ч"): "CH",
@@ -33,7 +32,7 @@ def normalize(name):   # Транслитерация c rbhbkbws
     return fin_name
 
 
-dict_keys = list(dict.keys(files)) # Создание папок
+dict_keys = list(dict.keys(files)) # Folder creates
 for folder in dict_keys:
     os.chdir(sort_folder)
     folder = str(folder)
@@ -46,35 +45,25 @@ def move(path):      # Перемещение файлов в папки по н
     sort_file = list(files.items())
     sufix = el[-1].split(".")[-1]
     file_name = "".join(el[-1].split(".")[0:-1])
+    new_el = (normalize("".join(file_name)) + "." + sufix)
+    el_moved = False
     for value in range(len(sort_file)):
         if sufix in sort_file[value][1]:
-            new_el = (normalize("".join(file_name)) + "." + sufix)
             os.rename(path, f'{sort_folder}\\{sort_file[value][0]}\\' + new_el)
             print(f'Moving {el} in {sort_file[value][0]} folder\n')
-        else:
-            if os.path.isdir("other"):
-                new_el = (normalize("".join(file_name)) + "." + sufix)
-                os.rename(path, f'{sort_folder}\\other\\' + new_el)
-                print(f'Moving {el} in other folder\n')
-                break
-            else:
-                os.makedirs("other")
-                new_el = (normalize("".join(file_name)) + "." + sufix)
-                os.rename(path, f'{sort_folder}\\other\\' + new_el)
-                print(f'Moving {el} in other folder\n')           
-                break
-
-
-
+            el_moved = True
+    if not el_moved:
+        os.rename(path, f'{sort_folder}\\other\\' + new_el)
+        print(f'Moving {el} in other folder\n')
 
 def folder_sort(path):  # Рекурсивный проход по папкам
     path_len = len(" ".join(path).split("\\"))
     for folderName, subfolders, filenames in os.walk(path):
         try:
-            p = (folderName).split("\\")[path_len]    
+            folder = (folderName).split("\\")[path_len]    
         except:
-            p = None    
-        if p in dict_keys or p == "other":
+            folder = None    
+        if folder in dict_keys or folder == "other":
             pass
         else:
             files_list = []
@@ -82,12 +71,38 @@ def folder_sort(path):  # Рекурсивный проход по папкам
                 files_list.append((f"{folderName}\\{el}"))
             with concurrent.futures.ThreadPoolExecutor(max_workers=2) as executor:
                 list(executor.map(move, files_list))
-                
+
+
+def remove_empty_dirs(path):  # Удаление пустых директорий
+    for folderName, subfolders, filenames in os.walk(path):
+        try:
+            os.removedirs(folderName)
+        except:
+            pass
+
+
+def unpackArchive (path):
+    file_list = os.listdir(f'{path}\\archives')
+    for el in file_list:
+        sufix = el.split(".")[-1]
+        file_name = el.split(".")[0:-1]
+        if sufix in shutil.get_unpack_formats():
+            shutil.unpack_archive (f'{path}\\archives\\{el}', f'{path}\\archives\\{file_name}\\{el}')
 
 
 if __name__ == "__main__":
 
 
     folder_sort(sort_folder)
+    unpackArchive(sort_folder)
+    remove_empty_dirs(sort_folder)
 
 #C:\Users\assa\Desktop\test
+
+"""Доброго дня.
+1. Коментарі мають бути англійською.                   done
+2. Змінні не можуть називатись одним символом.         done
+3. Спростіть вашу функцію move.                        done
+Якщо ви робити в if break, 
+и немає смислу далі писати else.
+Удачі!"""
