@@ -56,7 +56,7 @@ def move(path):      # Move files in folders to destination
         os.rename(path, f'{sort_folder}\\other\\' + new_el)
         print(f'Moving {el} in other folder\n')
 
-def folder_sort(path):  # Рекурсивный проход по папкам
+def folder_sort(path):  # Recursion through folders
     path_len = len(" ".join(path).split("\\"))
     for folderName, subfolders, filenames in os.walk(path):
         try:
@@ -73,7 +73,7 @@ def folder_sort(path):  # Рекурсивный проход по папкам
                 list(executor.map(move, files_list))
 
 
-def remove_empty_dirs(path):  # Удаление пустых директорий
+def remove_empty_dirs(path):  # delete empty dirs
     for folderName, subfolders, filenames in os.walk(path):
         try:
             os.removedirs(folderName)
@@ -96,13 +96,3 @@ if __name__ == "__main__":
     folder_sort(sort_folder)
     unpackArchive(sort_folder)
     remove_empty_dirs(sort_folder)
-
-#C:\Users\assa\Desktop\test
-
-"""Доброго дня.
-1. Коментарі мають бути англійською.                   done
-2. Змінні не можуть називатись одним символом.         done
-3. Спростіть вашу функцію move.                        done
-Якщо ви робити в if break, 
-и немає смислу далі писати else.
-Удачі!"""
